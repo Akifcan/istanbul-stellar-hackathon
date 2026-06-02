@@ -13,6 +13,7 @@ declare global {
     audiences: string[]
     interests: string[]
     estimatedReach: number
+    txHash: string | null
   }
 }
 

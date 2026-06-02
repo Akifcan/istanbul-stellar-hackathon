@@ -34,6 +34,7 @@ This is the single most important mental model in the App Router.
 - Always use **yup** for form validations.
 - Pair yup with `react-hook-form` via `@hookform/resolvers/yup` for client-side forms. The form component must be a Client Component (`'use client'`).
 - Define the yup schema once and infer the TypeScript type from it (`yup.InferType<typeof schema>`) — never hand-write a duplicate type.
+- Schemas live in the top-level `schemas/` folder (one file per form, kebab-case), each exporting the schema and its inferred type — do NOT define schemas inline in the component. Example: `schemas/campaign-schema.ts` exports `campaignSchema` + `CampaignFormValues`; the form imports both.
 
 ## Typing
 
@@ -412,6 +413,7 @@ app/
 ├── api/                 # Route Handlers (route.ts) — backend endpoints
 components/              # ALL components — shared + route-specific (kebab-case files)
 lib/                     # Shared utilities, fetchers, constants, server helpers
+schemas/                 # yup form schemas (one per form) + inferred types
 hooks/                   # Reusable client hooks (use-*.ts)
 types/                   # Global type definitions (.d.ts)
 public/                  # Static assets served at the root

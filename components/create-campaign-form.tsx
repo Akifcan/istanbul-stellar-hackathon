@@ -3,7 +3,6 @@
 import { useRouter } from "next/navigation"
 import { useForm, useWatch } from "react-hook-form"
 import { yupResolver } from "@hookform/resolvers/yup"
-import * as yup from "yup"
 import { Fuel, Users } from "lucide-react"
 import { toast } from "sonner"
 
@@ -31,63 +30,28 @@ import MultiSelect from "@/components/multi-select"
 import AdPreview from "@/components/ad-preview"
 import { AD_FORMATS } from "@/lib/ad-formats"
 import { useWallet } from "@/lib/wallet"
+import { depositToBase } from "@/lib/deposit"
 import {
   AD_AUDIENCES,
   AD_INTERESTS,
-  AUDIENCE_IDS,
   BUDGET_DEFAULT,
   BUDGET_MAX,
   BUDGET_MIN,
   BUDGET_STEP,
   ESTIMATED_GAS_XLM,
-  INTEREST_IDS,
   estimateReach,
 } from "@/lib/targeting"
-
-const FORMAT_IDS = AD_FORMATS.map((format) => format.id)
-
-const schema = yup.object({
-  name: yup.string().trim().required("Ad name is required"),
-  format: yup
-    .string()
-    .oneOf(FORMAT_IDS, "Choose an ad type")
-    .required("Ad type is required"),
-  description: yup
-    .string()
-    .trim()
-    .min(10, "Add at least 10 characters")
-    .required("Description is required"),
-  imageUrl: yup
-    .string()
-    .trim()
-    .url("Enter a valid image URL (https://…)")
-    .required("Image URL is required"),
-  budget: yup
-    .number()
-    .typeError("Set a budget")
-    .min(BUDGET_MIN)
-    .max(BUDGET_MAX)
-    .required(),
-  audiences: yup
-    .array()
-    .of(yup.string().oneOf(AUDIENCE_IDS).required())
-    .min(1, "Select at least one target audience")
-    .required(),
-  interests: yup
-    .array()
-    .of(yup.string().oneOf(INTEREST_IDS).required())
-    .min(1, "Select at least one interest")
-    .required(),
-})
-
-type FormValues = yup.InferType<typeof schema>
+import {
+  campaignSchema,
+  type CampaignFormValues as FormValues,
+} from "@/schemas/campaign-schema"
 
 export default function CreateCampaignForm() {
   const router = useRouter()
   const wallet = useWallet()
 
   const form = useForm<FormValues, unknown, FormValues>({
-    resolver: yupResolver(schema),
+    resolver: yupResolver(campaignSchema),
     defaultValues: {
       name: "",
       description: "",
@@ -113,10 +77,33 @@ export default function CreateCampaignForm() {
       return
     }
 
+    // 1. Deposit the budget into the base (treasury) contract via Freighter.
+    let txHash: string
+    try {
+      toast.loading("Funding campaign — approve the deposit in Freighter…", {
+        id: "deposit",
+      })
+      txHash = await depositToBase(wallet, values.budget)
+      toast.success("Budget deposited to pool", {
+        id: "deposit",
+        description: `${txHash.slice(0, 8)}…${txHash.slice(-8)}`,
+      })
+    } catch (err) {
+      toast.error("Deposit failed", {
+        id: "deposit",
+        description:
+          err instanceof Error
+            ? err.message
+            : "Make sure you have enough test USDC.",
+      })
+      return
+    }
+
+    // 2. Save the campaign with its on-chain deposit hash.
     const res = await fetch("/api/campaigns", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ wallet, ...values }),
+      body: JSON.stringify({ wallet, ...values, txHash }),
     })
 
     if (!res.ok) {

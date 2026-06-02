@@ -2,7 +2,6 @@
 
 import { useForm } from "react-hook-form"
 import { yupResolver } from "@hookform/resolvers/yup"
-import * as yup from "yup"
 import { useSWRConfig } from "swr"
 import { Plus } from "lucide-react"
 import { toast } from "sonner"
@@ -26,24 +25,17 @@ import {
 } from "@/components/ui/form"
 import { useWallet } from "@/lib/wallet"
 import { deployVault } from "@/lib/deploy-vault"
-
-const schema = yup.object({
-  name: yup.string().trim().required("Key name is required"),
-  websiteUrl: yup
-    .string()
-    .trim()
-    .url("Enter a valid URL (https://…)")
-    .required("Website URL is required"),
-})
-
-type FormValues = yup.InferType<typeof schema>
+import {
+  apiKeySchema,
+  type ApiKeyFormValues as FormValues,
+} from "@/schemas/api-key-schema"
 
 export default function CreateApiKeyForm() {
   const wallet = useWallet()
   const { mutate } = useSWRConfig()
 
   const form = useForm<FormValues>({
-    resolver: yupResolver(schema),
+    resolver: yupResolver(apiKeySchema),
     defaultValues: { name: "", websiteUrl: "" },
   })
 

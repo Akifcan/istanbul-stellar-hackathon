@@ -21,6 +21,7 @@ type CampaignRow = {
   audiences: string[] | null
   interests: string[] | null
   estimated_reach: number | string
+  tx_hash: string | null
 }
 
 function toCampaign(row: CampaignRow): AdCampaign {
@@ -38,6 +39,7 @@ function toCampaign(row: CampaignRow): AdCampaign {
     audiences: row.audiences ?? [],
     interests: row.interests ?? [],
     estimatedReach: Number(row.estimated_reach),
+    txHash: row.tx_hash,
   }
 }
 
@@ -87,6 +89,7 @@ export async function POST(request: NextRequest) {
   const interests = Array.isArray(body.interests)
     ? body.interests.map(String).filter((i: string) => INTEREST_IDS.includes(i))
     : []
+  const txHash = body.txHash ? String(body.txHash).trim() : null
 
   if (!wallet) {
     return NextResponse.json({ error: "wallet is required" }, { status: 401 })
@@ -134,6 +137,7 @@ export async function POST(request: NextRequest) {
       audiences,
       interests,
       estimated_reach: estimateReach(budget, audiences, interests),
+      tx_hash: txHash,
     })
     .select("*")
     .single()

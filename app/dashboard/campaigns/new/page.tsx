@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/card"
 import CreateCampaignForm from "@/components/create-campaign-form"
 import WalletMenu from "@/components/wallet-menu"
+import UsdcFaucet from "@/components/usdc-faucet"
 
 export const metadata: Metadata = {
   title: "Create campaign | AdProof",
@@ -48,12 +49,16 @@ export default function NewCampaignPage() {
           Back to dashboard
         </Link>
 
+        <div className="mb-6">
+          <UsdcFaucet />
+        </div>
+
         <Card>
           <CardHeader>
             <CardTitle>Create campaign</CardTitle>
             <CardDescription>
-              Define your ad. Targeting conditions are proven with zero-knowledge —
-              you never see who your audience is.
+              Define your ad. The budget is deposited into the AdProof pool
+              on-chain; targeting conditions are proven with zero-knowledge.
             </CardDescription>
           </CardHeader>
           <CardContent>
