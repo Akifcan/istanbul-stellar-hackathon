@@ -5,6 +5,7 @@ import LandingHero from "@/components/landing-hero";
 import LandingComparison from "@/components/landing-comparison";
 import LandingNews from "@/components/landing-news";
 import LandingOwnData from "@/components/landing-own-data";
+import LandingFlow from "@/components/landing-flow";
 import LandingFeatureRow from "@/components/landing-feature-row";
 import LandingVisualPrivacy from "@/components/landing-visual-privacy";
 import LandingVisualStellar from "@/components/landing-visual-stellar";
@@ -34,6 +35,7 @@ export default function Home() {
         <LandingNews />
         <LandingComparison />
         <LandingOwnData />
+        <LandingFlow />
 
         <LandingFeatureRow
           eyebrow="Zero-knowledge targeting"

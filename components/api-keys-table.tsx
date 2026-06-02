@@ -25,6 +25,7 @@ import {
 import { KEY_STATUS } from "@/lib/publisher"
 import { fetcher } from "@/lib/fetcher"
 import { useWallet } from "@/lib/wallet"
+import WithdrawButton from "@/components/withdraw-button"
 
 function maskKey(key: string): string {
   return `${key.slice(0, 8)}…${key.slice(-4)}`
@@ -79,6 +80,7 @@ export default function ApiKeysTable() {
                 <TableHead className="text-right">USDC</TableHead>
                 <TableHead>Vault</TableHead>
                 <TableHead>Status</TableHead>
+                <TableHead className="text-right">Action</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -172,6 +174,9 @@ export default function ApiKeysTable() {
                     >
                       {apiKey.status}
                     </Badge>
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <WithdrawButton apiKey={apiKey} />
                   </TableCell>
                 </TableRow>
               ))}

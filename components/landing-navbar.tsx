@@ -15,6 +15,7 @@ export default function LandingNavbar() {
 
         <div className="hidden items-center gap-8 text-sm font-medium text-muted-foreground md:flex">
           <Link href="#why" className="hover:text-foreground">Why AdProof</Link>
+          <Link href="#how" className="hover:text-foreground">How it works</Link>
           <Link href="#demos" className="hover:text-foreground">Demos</Link>
         </div>
 
