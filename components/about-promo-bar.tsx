@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, X, Zap } from "lucide-react";
+import { ArrowRight, X } from "lucide-react";
 
 const STELLAR_YELLOW = "#FDDA24";
 
@@ -18,8 +18,8 @@ export default function AboutPromoBar() {
         style={{ backgroundColor: STELLAR_YELLOW }}
       >
         <div className="mx-auto flex max-w-6xl items-center gap-4 px-4 py-3 text-black sm:px-6">
-          <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-black/10">
-            <Zap className="size-4" aria-hidden="true" />
+          <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-white">
+            <Image src="/logo.png" alt="AdProof" width={24} height={24} />
           </span>
 
           <div className="min-w-0 flex-1">

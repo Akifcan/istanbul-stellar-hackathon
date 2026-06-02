@@ -19,7 +19,7 @@ export default function LandingPromoBar() {
 
           <div className="min-w-0 flex-1">
             <p className="truncate text-sm font-semibold">
-              Get paid the instant your ads are seen — no middlemen, no waiting.
+              Get paid the instant your ads are seen no middlemen, no waiting.
             </p>
             <p className="hidden items-center gap-1.5 truncate text-xs text-muted-foreground sm:flex">
               Instant payouts, settled on

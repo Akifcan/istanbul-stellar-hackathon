@@ -1,5 +1,15 @@
 export const AD_INSTALL_SNIPPET = `npm install @adproof/react`
 
+// Indicative payout per 1,000 verified impressions (CPM), in USDC, by format.
+// Higher-engagement formats earn more.
+export const AD_FORMAT_CPM: Record<string, number> = {
+  square: 8,
+  rectangle: 12,
+  banner: 10,
+  popup: 18,
+  rewarded: 35,
+}
+
 export const AD_PROVIDER_SNIPPET = `import { AdProofProvider } from "@adproof/react"
 
 export default function App({ children }) {
