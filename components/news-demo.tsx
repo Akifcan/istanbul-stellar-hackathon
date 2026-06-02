@@ -7,6 +7,8 @@ import { Search, Bell, Menu } from "lucide-react"
 
 import { fetcher } from "@/lib/fetcher"
 import AdproofAd from "@/components/adproof-ad"
+import DemoBar from "@/components/demo-bar"
+import { useSelectedProfile } from "@/lib/profiles"
 
 const NAVY = "#0a2540"
 const BLUE = "#0076ff"
@@ -38,15 +40,27 @@ const LATEST = [
   { time: "2 HOURS AGO", title: "Dollar steadies after volatile trading session" },
 ]
 
+type ServedAd = {
+  id: string
+  name: string
+  description: string
+  imageUrl: string
+  format: string
+  interests: string[]
+}
+
 type ServeResponse = {
   apiKeyId: string | null
-  ads: { id: string; name: string; description: string; imageUrl: string; format: string }[]
+  ads: ServedAd[]
 }
 
 export default function NewsDemo() {
-  const { data } = useSWR<ServeResponse>("/api/ads/serve?count=4", fetcher, {
-    revalidateOnFocus: false,
-  })
+  const profile = useSelectedProfile()
+  const { data } = useSWR<ServeResponse>(
+    `/api/ads/serve?count=4&interests=${profile.interests.join(",")}`,
+    fetcher,
+    { revalidateOnFocus: false }
+  )
 
   const ads = useMemo(() => data?.ads ?? [], [data])
   const apiKeyId = data?.apiKeyId ?? null
@@ -66,6 +80,7 @@ export default function NewsDemo() {
 
   return (
     <div className="min-h-dvh bg-gray-100">
+      <DemoBar />
       {/* Breaking bar */}
       <div className="bg-[#cc0000] px-4 py-1.5 text-xs font-medium text-white">
         <div className="mx-auto flex max-w-6xl items-center gap-2">
@@ -126,7 +141,7 @@ export default function NewsDemo() {
           {/* Hero ad (the big banner slot) */}
           {heroAd && (
             <div className="mb-6">
-              <AdproofAd ad={heroAd} apiKeyId={apiKeyId} variant="banner" accent={BLUE} cta="Learn more" />
+              <AdproofAd ad={heroAd} apiKeyId={apiKeyId} profileSecret={profile.secret} profileInterests={profile.interests} variant="banner" accent={BLUE} cta="Learn more" />
             </div>
           )}
 
@@ -137,6 +152,8 @@ export default function NewsDemo() {
                   key={`ad-${idx}`}
                   ad={ads[item.adIndex]}
                   apiKeyId={apiKeyId}
+                  profileSecret={profile.secret}
+                  profileInterests={profile.interests}
                   variant="card"
                   accent={BLUE}
                   cta="Learn more"
@@ -189,7 +206,7 @@ export default function NewsDemo() {
           </div>
 
           {sidebarAd && (
-            <AdproofAd ad={sidebarAd} apiKeyId={apiKeyId} variant="card" accent={BLUE} cta="Learn more" />
+            <AdproofAd ad={sidebarAd} apiKeyId={apiKeyId} profileSecret={profile.secret} profileInterests={profile.interests} variant="card" accent={BLUE} cta="Learn more" />
           )}
         </aside>
       </main>

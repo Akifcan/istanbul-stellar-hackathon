@@ -11,6 +11,8 @@ export async function GET(request: NextRequest) {
     Math.max(Number(request.nextUrl.searchParams.get("count") ?? 4), 1),
     8
   )
+  const interestsParam = request.nextUrl.searchParams.get("interests") ?? ""
+  const interests = interestsParam.split(",").map((s) => s.trim()).filter(Boolean)
 
   const [{ data: campaignRows }, { data: keyRows }] = await Promise.all([
     supabaseAdmin
@@ -24,9 +26,14 @@ export async function GET(request: NextRequest) {
       .limit(1),
   ])
 
-  const eligible = (campaignRows as CampaignRow[] | null ?? []).filter(
-    (row) => Number(row.spent) < Number(row.budget)
-  )
+  const eligible = (campaignRows as CampaignRow[] | null ?? []).filter((row) => {
+    if (Number(row.spent) >= Number(row.budget)) return false
+    // Interest-based targeting: campaign must share at least one interest with
+    // the viewer's profile. (Eligibility is proven with a ZK proof per ad.)
+    if (interests.length === 0) return true
+    const campaignInterests = row.interests ?? []
+    return campaignInterests.some((i) => interests.includes(i))
+  })
 
   // Shuffle and take `count`.
   const shuffled = [...eligible].sort(() => Math.random() - 0.5).slice(0, count)

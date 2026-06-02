@@ -1,20 +1,22 @@
-import Link from "next/link"
-import { ShoppingBag, Newspaper, ArrowUpRight } from "lucide-react"
+import Link from "next/link";
+import { ShoppingBag, Newspaper, ArrowUpRight } from "lucide-react";
 
 const DEMOS = [
   {
     icon: ShoppingBag,
     title: "E-commerce storefront",
-    description: "See AdProof ads served inside a shopping site, placed among products.",
+    description:
+      "See AdProof ads served inside a shopping site, placed among products.",
     href: "/demo/trendyol",
   },
   {
     icon: Newspaper,
     title: "Markets news site",
-    description: "AdProof banner and in-feed ads embedded across a news homepage.",
-    href: "/news",
+    description:
+      "AdProof banner and in-feed ads embedded across a news homepage.",
+    href: "/demo/news",
   },
-] as const
+] as const;
 
 export default function LandingDemos() {
   return (
@@ -41,14 +43,19 @@ export default function LandingDemos() {
                 <span className="flex size-12 items-center justify-center rounded-xl bg-brand/10 text-brand">
                   <demo.icon className="size-6" aria-hidden="true" />
                 </span>
-                <ArrowUpRight className="size-5 text-muted-foreground transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" aria-hidden="true" />
+                <ArrowUpRight
+                  className="size-5 text-muted-foreground transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5"
+                  aria-hidden="true"
+                />
               </div>
               <h3 className="mt-5 text-lg font-semibold">{demo.title}</h3>
-              <p className="mt-2 text-sm text-muted-foreground">{demo.description}</p>
+              <p className="mt-2 text-sm text-muted-foreground">
+                {demo.description}
+              </p>
             </Link>
           ))}
         </div>
       </div>
     </section>
-  )
+  );
 }

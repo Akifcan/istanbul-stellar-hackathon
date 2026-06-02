@@ -7,6 +7,8 @@ import { Search, Heart, ShoppingCart, User } from "lucide-react"
 
 import { fetcher } from "@/lib/fetcher"
 import AdproofAd from "@/components/adproof-ad"
+import DemoBar from "@/components/demo-bar"
+import { useSelectedProfile } from "@/lib/profiles"
 
 const ORANGE = "#f27a1a"
 
@@ -34,21 +36,27 @@ const PRODUCTS = [
   { name: "El Blenderı", price: "959", brand: "BrewHome" },
 ]
 
+type ServedAd = {
+  id: string
+  name: string
+  description: string
+  imageUrl: string
+  format: string
+  interests: string[]
+}
+
 type ServeResponse = {
   apiKeyId: string | null
-  ads: {
-    id: string
-    name: string
-    description: string
-    imageUrl: string
-    format: string
-  }[]
+  ads: ServedAd[]
 }
 
 export default function TrendyolDemo() {
-  const { data } = useSWR<ServeResponse>("/api/ads/serve?count=5", fetcher, {
-    revalidateOnFocus: false,
-  })
+  const profile = useSelectedProfile()
+  const { data } = useSWR<ServeResponse>(
+    `/api/ads/serve?count=5&interests=${profile.interests.join(",")}`,
+    fetcher,
+    { revalidateOnFocus: false }
+  )
 
   const ads = useMemo(() => data?.ads ?? [], [data])
   const apiKeyId = data?.apiKeyId ?? null
@@ -75,6 +83,7 @@ export default function TrendyolDemo() {
 
   return (
     <div className="min-h-dvh bg-gray-50">
+      <DemoBar />
       {/* Top bar */}
       <header className="border-b bg-white">
         <div className="mx-auto flex max-w-6xl items-center gap-6 px-4 py-3">
@@ -114,7 +123,13 @@ export default function TrendyolDemo() {
         {/* Hero banner ad */}
         {bannerAd && (
           <div className="mb-6">
-            <AdproofAd ad={bannerAd} apiKeyId={apiKeyId} variant="banner" />
+            <AdproofAd
+              ad={bannerAd}
+              apiKeyId={apiKeyId}
+              profileSecret={profile.secret}
+              profileInterests={profile.interests}
+              variant="banner"
+            />
           </div>
         )}
 
@@ -128,6 +143,8 @@ export default function TrendyolDemo() {
                 key={`ad-${idx}`}
                 ad={ads[item.adIndex]}
                 apiKeyId={apiKeyId}
+                profileSecret={profile.secret}
+                profileInterests={profile.interests}
                 variant="card"
               />
             ) : (

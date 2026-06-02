@@ -3,43 +3,96 @@
 import { useEffect, useRef } from "react"
 import Image from "next/image"
 
+import { generateEligibilityProof } from "@/lib/prove"
+import { demoLog } from "@/lib/demo-console"
+import { interestLabel } from "@/lib/targeting"
+
 type ServedAd = {
   id: string
   name: string
   description: string
   imageUrl: string
   format: string
-}
-
-function reportImpression(campaignId: string, apiKeyId: string | null) {
-  fetch("/api/ads/impression", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ campaignId, apiKeyId }),
-    keepalive: true,
-  }).catch(() => {})
+  interests: string[]
 }
 
 export default function AdproofAd({
   ad,
   apiKeyId,
+  profileSecret,
+  profileInterests,
   variant = "card",
   accent = "#f27a1a",
   cta = "İncele",
 }: {
   ad: ServedAd
   apiKeyId: string | null
+  profileSecret: string
+  profileInterests: string[]
   variant?: "card" | "banner"
   accent?: string
   cta?: string
 }) {
-  const fired = useRef(false)
+  const fired = useRef("")
 
   useEffect(() => {
-    if (fired.current) return
-    fired.current = true
-    reportImpression(ad.id, apiKeyId)
-  }, [ad.id, apiKeyId])
+    // Re-run when the profile (secret) changes — a new viewer, a new proof.
+    const token = `${ad.id}:${profileSecret}`
+    if (fired.current === token) return
+    fired.current = token
+
+    let cancelled = false
+    ;(async () => {
+      try {
+        demoLog("info", `Ad "${ad.name}" → generating eligibility proof…`)
+        const result = await generateEligibilityProof(
+          profileSecret,
+          profileInterests,
+          ad.interests,
+          ad.id
+        )
+        if (!result || cancelled) return
+
+        const nullifier = result.publicSignals[0]
+        demoLog(
+          "proof",
+          `ZK proof ready · interest=${interestLabel(result.interest)} · nullifier=${nullifier.slice(0, 10)}…`
+        )
+
+        const res = await fetch("/api/ads/impression", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            campaignId: ad.id,
+            apiKeyId,
+            interest: result.interest,
+            proof: result.proof,
+            publicSignals: result.publicSignals,
+          }),
+          keepalive: true,
+        })
+        const data = await res.json().catch(() => ({}))
+        if (cancelled) return
+
+        if (!res.ok) {
+          demoLog("error", `Verification failed for "${ad.name}"`)
+        } else if (data.counted) {
+          demoLog(
+            "success",
+            `Proof verified ✓ "${ad.name}" — publisher +${data.earned} USDC`
+          )
+        } else {
+          demoLog("chain", `Proof verified ✓ "${ad.name}" — ${data.reason}`)
+        }
+      } catch {
+        if (!cancelled) demoLog("error", `Could not prove eligibility for "${ad.name}"`)
+      }
+    })()
+
+    return () => {
+      cancelled = true
+    }
+  }, [ad, apiKeyId, profileSecret, profileInterests])
 
   const label = (
     <span className="absolute left-2 top-2 z-10 rounded bg-black/55 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-white">

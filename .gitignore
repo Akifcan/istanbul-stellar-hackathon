@@ -43,3 +43,6 @@ next-env.d.ts
 # rust / soroban contracts (build artifacts)
 contracts/**/target/
 **/*.rs.bk
+
+# zk build artifacts (large)
+zk/build/
