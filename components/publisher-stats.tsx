@@ -1,12 +1,24 @@
+"use client"
+
+import useSWR from "swr"
 import { Globe, Eye, Coins } from "lucide-react"
 
 import { Card, CardContent } from "@/components/ui/card"
 import { KEY_STATUS } from "@/lib/publisher"
+import { fetcher } from "@/lib/fetcher"
+import { useWallet } from "@/lib/wallet"
 
-export default function PublisherStats({ keys }: { keys: PublisherApiKey[] }) {
-  const activeSites = keys.filter((key) => key.status === KEY_STATUS.ACTIVE).length
-  const impressions = keys.reduce((sum, key) => sum + key.impressions, 0)
-  const earned = keys.reduce((sum, key) => sum + key.earned, 0)
+export default function PublisherStats() {
+  const wallet = useWallet()
+  const { data: keys, error, isLoading } = useSWR<PublisherApiKey[]>(
+    wallet ? `/api/api-keys?wallet=${encodeURIComponent(wallet)}` : null,
+    fetcher
+  )
+
+  const list = keys ?? []
+  const activeSites = list.filter((key) => key.status === KEY_STATUS.ACTIVE).length
+  const impressions = list.reduce((sum, key) => sum + key.impressions, 0)
+  const earned = list.reduce((sum, key) => sum + key.earned, 0)
 
   const stats = [
     {
@@ -38,9 +50,13 @@ export default function PublisherStats({ keys }: { keys: PublisherApiKey[] }) {
               <stat.icon className="size-5" aria-hidden="true" />
             </span>
             <span className="flex flex-col">
-              <span className="text-2xl font-semibold tracking-tight tabular-nums">
-                {stat.value}
-              </span>
+              {isLoading || error ? (
+                <span className="bg-muted my-1 h-7 w-20 animate-pulse rounded" />
+              ) : (
+                <span className="text-2xl font-semibold tracking-tight tabular-nums">
+                  {stat.value}
+                </span>
+              )}
               <span className="text-muted-foreground text-sm">{stat.label}</span>
             </span>
           </CardContent>

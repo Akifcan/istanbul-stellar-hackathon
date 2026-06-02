@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import useSWR from "swr"
 import { Check, Copy } from "lucide-react"
 import { toast } from "sonner"
 
@@ -22,12 +23,19 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { KEY_STATUS } from "@/lib/publisher"
+import { fetcher } from "@/lib/fetcher"
+import { useWallet } from "@/lib/wallet"
 
 function maskKey(key: string): string {
   return `${key.slice(0, 8)}…${key.slice(-4)}`
 }
 
-export default function ApiKeysTable({ keys }: { keys: PublisherApiKey[] }) {
+export default function ApiKeysTable() {
+  const wallet = useWallet()
+  const { data: keys, error, isLoading } = useSWR<PublisherApiKey[]>(
+    wallet ? `/api/api-keys?wallet=${encodeURIComponent(wallet)}` : null,
+    fetcher
+  )
   const [copiedId, setCopiedId] = useState<string | null>(null)
 
   const handleCopy = async (apiKey: PublisherApiKey) => {
@@ -46,7 +54,17 @@ export default function ApiKeysTable({ keys }: { keys: PublisherApiKey[] }) {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        {keys.length === 0 ? (
+        {error ? (
+          <p className="text-destructive py-8 text-center text-sm">
+            Could not load API keys. Please refresh.
+          </p>
+        ) : isLoading ? (
+          <div className="flex flex-col gap-3">
+            {[0, 1].map((i) => (
+              <div key={i} className="bg-muted h-12 animate-pulse rounded" />
+            ))}
+          </div>
+        ) : !keys || keys.length === 0 ? (
           <p className="text-muted-foreground py-8 text-center text-sm">
             No API keys yet. Create one above to get started.
           </p>

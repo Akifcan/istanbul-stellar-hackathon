@@ -1,7 +1,6 @@
 "use client"
 
 import { useRouter } from "next/navigation"
-import Image from "next/image"
 import { useForm, useWatch } from "react-hook-form"
 import { yupResolver } from "@hookform/resolvers/yup"
 import * as yup from "yup"
@@ -29,6 +28,7 @@ import {
   FormMessage,
 } from "@/components/ui/form"
 import MultiSelect from "@/components/multi-select"
+import AdPreview from "@/components/ad-preview"
 import { AD_FORMATS } from "@/lib/ad-formats"
 import { useWallet } from "@/lib/wallet"
 import {
@@ -102,6 +102,9 @@ export default function CreateCampaignForm() {
   const audiences = useWatch({ control: form.control, name: "audiences" }) ?? []
   const interests = useWatch({ control: form.control, name: "interests" }) ?? []
   const imageUrl = useWatch({ control: form.control, name: "imageUrl" }) ?? ""
+  const name = useWatch({ control: form.control, name: "name" }) ?? ""
+  const format = useWatch({ control: form.control, name: "format" }) ?? ""
+  const description = useWatch({ control: form.control, name: "description" }) ?? ""
   const reach = estimateReach(budget, audiences, interests)
 
   const onSubmit = async (values: FormValues) => {
@@ -212,16 +215,7 @@ export default function CreateCampaignForm() {
               )}
             />
 
-            {imageUrl && (
-              <Image
-                src={imageUrl}
-                alt="Ad image preview"
-                width={320}
-                height={180}
-                unoptimized
-                className="h-auto w-full max-w-xs rounded-lg border object-cover"
-              />
-            )}
+            <AdPreview data={{ format, name, description, imageUrl }} />
           </div>
 
           {/* Right: budget + targeting */}

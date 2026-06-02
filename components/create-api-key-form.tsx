@@ -3,6 +3,7 @@
 import { useForm } from "react-hook-form"
 import { yupResolver } from "@hookform/resolvers/yup"
 import * as yup from "yup"
+import { useSWRConfig } from "swr"
 import { Plus } from "lucide-react"
 import { toast } from "sonner"
 
@@ -23,7 +24,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form"
-import { generateApiKey, KEY_STATUS } from "@/lib/publisher"
+import { useWallet } from "@/lib/wallet"
 
 const schema = yup.object({
   name: yup.string().trim().required("Key name is required"),
@@ -36,27 +37,36 @@ const schema = yup.object({
 
 type FormValues = yup.InferType<typeof schema>
 
-export default function CreateApiKeyForm({
-  onCreate,
-}: {
-  onCreate: (key: PublisherApiKey) => void
-}) {
+export default function CreateApiKeyForm() {
+  const wallet = useWallet()
+  const { mutate } = useSWRConfig()
+
   const form = useForm<FormValues>({
     resolver: yupResolver(schema),
     defaultValues: { name: "", websiteUrl: "" },
   })
 
-  const onSubmit = (values: FormValues) => {
-    onCreate({
-      id: crypto.randomUUID(),
-      name: values.name,
-      websiteUrl: values.websiteUrl,
-      key: generateApiKey(),
-      createdAt: new Date().toISOString().slice(0, 10),
-      impressions: 0,
-      earned: 0,
-      status: KEY_STATUS.ACTIVE,
+  const onSubmit = async (values: FormValues) => {
+    if (!wallet) {
+      toast.error("Connect your wallet first")
+      return
+    }
+
+    const res = await fetch("/api/api-keys", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ wallet, ...values }),
     })
+
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}))
+      toast.error("Could not create API key", {
+        description: body.error ?? "Please try again.",
+      })
+      return
+    }
+
+    await mutate(`/api/api-keys?wallet=${encodeURIComponent(wallet)}`)
     toast.success("API key created", {
       description: `“${values.name}” is ready to use.`,
     })
@@ -103,9 +113,13 @@ export default function CreateApiKeyForm({
                 </FormItem>
               )}
             />
-            <Button type="submit" className="gap-2 sm:mt-[1.625rem]">
+            <Button
+              type="submit"
+              disabled={form.formState.isSubmitting}
+              className="gap-2 sm:mt-[1.625rem]"
+            >
               <Plus className="size-4" aria-hidden="true" />
-              Create key
+              {form.formState.isSubmitting ? "Creating…" : "Create key"}
             </Button>
           </form>
         </Form>
