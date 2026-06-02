@@ -4,6 +4,7 @@ import Link from "next/link"
 import { EyeOff, ShieldCheck, Zap } from "lucide-react"
 
 import WalletConnect from "@/components/wallet-connect"
+import DemoLoginButton from "@/components/demo-login-button"
 
 export const metadata: Metadata = {
   title: "Sign in | AdProof",
@@ -112,6 +113,14 @@ export default function LoginPage() {
           <div className="mt-8">
             <WalletConnect />
           </div>
+
+          <div className="my-4 flex items-center gap-3">
+            <span className="bg-border h-px flex-1" />
+            <span className="text-muted-foreground text-xs">or</span>
+            <span className="bg-border h-px flex-1" />
+          </div>
+
+          <DemoLoginButton />
 
           <div className="mt-6 flex items-start gap-2 rounded-lg border border-brand-teal/20 bg-brand-teal/5 p-3">
             <ShieldCheck
