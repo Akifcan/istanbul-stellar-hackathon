@@ -23,10 +23,16 @@ export default function DashboardPage() {
     <div className="min-h-dvh">
       <header className="border-b">
         <div className="mx-auto flex w-full max-w-5xl items-center justify-between px-4 py-4 sm:px-6">
-          <Link href="/" className="flex items-center gap-2" aria-label="AdProof home">
-            <Image src="/logo.png" alt="AdProof logo" width={32} height={32} priority />
-            <span className="text-lg font-semibold tracking-tight">AdProof</span>
-          </Link>
+          <div className="flex items-center gap-3">
+            <Link href="/" className="flex items-center gap-2" aria-label="AdProof home">
+              <Image src="/logo.png" alt="AdProof logo" width={32} height={32} priority />
+              <span className="text-lg font-semibold tracking-tight">AdProof</span>
+            </Link>
+            <span className="hidden items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs text-muted-foreground sm:flex">
+              Built on
+              <Image src="/Stellar-Logo-Final-Black-RGB.png" alt="Stellar" width={56} height={14} />
+            </span>
+          </div>
           <WalletMenu />
         </div>
       </header>

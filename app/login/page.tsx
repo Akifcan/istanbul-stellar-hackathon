@@ -76,7 +76,16 @@ export default function LoginPage() {
           </ul>
         </div>
 
-        <p className="relative text-sm text-white/50">Powered by Stellar</p>
+        <div className="relative flex items-center gap-2 text-sm text-white/50">
+          Powered by
+          <Image
+            src="/Stellar-Logo-Final-White.png"
+            alt="Stellar"
+            width={80}
+            height={20}
+            className="opacity-80"
+          />
+        </div>
       </section>
 
       {/* Auth panel */}
@@ -115,7 +124,12 @@ export default function LoginPage() {
             </p>
           </div>
 
-          <p className="text-muted-foreground mt-8 text-center text-xs lg:text-left">
+          <div className="mt-8 flex items-center justify-center gap-2 text-xs text-muted-foreground lg:justify-start">
+            Powered by
+            <Image src="/Stellar-Logo-Final-Black-RGB.png" alt="Stellar" width={72} height={18} />
+          </div>
+
+          <p className="text-muted-foreground mt-4 text-center text-xs lg:text-left">
             By continuing you agree to our{" "}
             <Link
               href="/terms"
