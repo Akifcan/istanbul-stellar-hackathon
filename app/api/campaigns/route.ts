@@ -1,47 +1,11 @@
 import { NextRequest, NextResponse } from "next/server"
 
 import { supabaseAdmin } from "@/lib/supabase-admin"
-import { CAMPAIGN_STATUS } from "@/lib/campaigns"
+import { CAMPAIGN_STATUS, toCampaign, type CampaignRow } from "@/lib/campaigns"
 import { AD_FORMATS } from "@/lib/ad-formats"
 import { AUDIENCE_IDS, INTEREST_IDS, estimateReach } from "@/lib/targeting"
 
 const FORMAT_IDS = AD_FORMATS.map((format) => format.id) as readonly string[]
-
-type CampaignRow = {
-  id: string
-  name: string
-  format: string
-  description: string
-  image_url: string | null
-  status: "active" | "paused"
-  spent: number | string
-  impressions: number | string
-  created_at: string
-  budget: number | string
-  audiences: string[] | null
-  interests: string[] | null
-  estimated_reach: number | string
-  tx_hash: string | null
-}
-
-function toCampaign(row: CampaignRow): AdCampaign {
-  return {
-    id: row.id,
-    name: row.name,
-    format: row.format,
-    description: row.description,
-    imageUrl: row.image_url ?? "",
-    status: row.status,
-    spent: Number(row.spent),
-    impressions: Number(row.impressions),
-    createdAt: row.created_at.slice(0, 10),
-    budget: Number(row.budget),
-    audiences: row.audiences ?? [],
-    interests: row.interests ?? [],
-    estimatedReach: Number(row.estimated_reach),
-    txHash: row.tx_hash,
-  }
-}
 
 function isHttpUrl(value: string): boolean {
   try {

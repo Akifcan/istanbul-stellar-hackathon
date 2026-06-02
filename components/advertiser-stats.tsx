@@ -15,7 +15,7 @@ export default function AdvertiserStats() {
     fetcher
   )
 
-  const spent = (campaigns ?? []).reduce((sum, c) => sum + c.spent, 0)
+  const funded = (campaigns ?? []).reduce((sum, c) => sum + c.budget, 0)
   const activeCampaigns = (campaigns ?? []).filter(
     (c) => c.status === CAMPAIGN_STATUS.ACTIVE
   ).length
@@ -23,8 +23,8 @@ export default function AdvertiserStats() {
 
   const stats = [
     {
-      label: "USDC spent",
-      value: spent.toLocaleString("en-US", {
+      label: "USDC funded",
+      value: funded.toLocaleString("en-US", {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2,
       }),

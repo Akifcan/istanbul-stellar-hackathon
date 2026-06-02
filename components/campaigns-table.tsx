@@ -1,6 +1,7 @@
 "use client"
 
 import Image from "next/image"
+import Link from "next/link"
 import useSWR from "swr"
 import { ImageIcon } from "lucide-react"
 
@@ -64,6 +65,7 @@ export default function CampaignsTable() {
                 <TableHead className="w-14">Ad</TableHead>
                 <TableHead>Name</TableHead>
                 <TableHead>Type</TableHead>
+                <TableHead className="text-right">Budget</TableHead>
                 <TableHead className="text-right">People reached</TableHead>
                 <TableHead className="text-right">USDC spent</TableHead>
                 <TableHead>Status</TableHead>
@@ -92,13 +94,24 @@ export default function CampaignsTable() {
                     </span>
                   </TableCell>
                   <TableCell>
-                    <span className="font-medium">{campaign.name}</span>
+                    <Link
+                      href={`/dashboard/campaigns/${campaign.id}`}
+                      className="font-medium hover:underline"
+                    >
+                      {campaign.name}
+                    </Link>
                     <span className="text-muted-foreground line-clamp-1 max-w-xs text-xs">
                       {campaign.description}
                     </span>
                   </TableCell>
                   <TableCell>
                     <Badge variant="outline">{formatLabel(campaign.format)}</Badge>
+                  </TableCell>
+                  <TableCell className="text-right tabular-nums">
+                    {campaign.budget.toLocaleString("en-US", {
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2,
+                    })}
                   </TableCell>
                   <TableCell className="text-right tabular-nums">
                     {campaign.impressions.toLocaleString("en-US")}
