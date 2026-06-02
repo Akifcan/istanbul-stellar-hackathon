@@ -50,11 +50,11 @@ function Device({ active }: { active: boolean }) {
   return (
     <div
       className={cn(
-        "flex flex-1 flex-col items-center gap-2 rounded-xl border-2 p-4 transition-all",
+        "flex min-w-0 flex-1 flex-col items-center gap-2 rounded-xl border-2 p-3 text-center transition-all sm:p-4",
         active ? "border-brand bg-brand/5" : "border-border bg-card"
       )}
     >
-      <Smartphone className={cn("size-7", active ? "text-brand" : "text-muted-foreground")} aria-hidden="true" />
+      <Smartphone className={cn("size-6 sm:size-7", active ? "text-brand" : "text-muted-foreground")} aria-hidden="true" />
       <span className="text-xs font-semibold">User device</span>
       <span className="text-[10px] text-muted-foreground">interests + secret</span>
     </div>
@@ -65,11 +65,11 @@ function ServerBox({ active }: { active: boolean }) {
   return (
     <div
       className={cn(
-        "flex flex-1 flex-col items-center gap-2 rounded-xl border-2 p-4 transition-all",
+        "flex min-w-0 flex-1 flex-col items-center gap-2 rounded-xl border-2 p-3 text-center transition-all sm:p-4",
         active ? "border-brand-teal bg-brand-teal/5" : "border-border bg-card"
       )}
     >
-      <Server className={cn("size-7", active ? "text-brand-teal" : "text-muted-foreground")} aria-hidden="true" />
+      <Server className={cn("size-6 sm:size-7", active ? "text-brand-teal" : "text-muted-foreground")} aria-hidden="true" />
       <span className="text-xs font-semibold">AdProof server</span>
       <span className="text-[10px] text-muted-foreground">verifies proofs</span>
     </div>
@@ -91,7 +91,7 @@ function Flow({ step }: { step: number }) {
     )
   }
   if (step === 4) {
-    return <Packet dir="right" label="proof + nullifier" icon={ArrowRight} tone="teal" />
+    return <Packet dir="right" label="proof" icon={ArrowRight} tone="teal" />
   }
   if (step === 5) {
     return (
@@ -116,8 +116,8 @@ function Packet({
   tone: "brand" | "teal"
 }) {
   return (
-    <div className={cn("flex flex-col items-center gap-1", tone === "brand" ? "text-brand" : "text-brand-teal")}>
-      <span className="rounded-full border bg-card px-2 py-0.5 text-[10px] font-medium">{label}</span>
+    <div className={cn("flex max-w-full flex-col items-center gap-1", tone === "brand" ? "text-brand" : "text-brand-teal")}>
+      <span className="max-w-full truncate rounded-full border bg-card px-2 py-0.5 text-[10px] font-medium">{label}</span>
       <Icon className={cn("size-6", dir === "left" && "rotate-180")} aria-hidden="true" />
     </div>
   )
@@ -148,9 +148,9 @@ export default function LandingFlow() {
 
         <div className="mt-12 overflow-hidden rounded-2xl border bg-card shadow-sm">
           {/* Visual canvas */}
-          <div className="flex items-stretch gap-3 border-b bg-muted/30 p-6 sm:gap-6 sm:p-10">
+          <div className="flex items-stretch gap-2 border-b bg-muted/30 p-4 sm:gap-6 sm:p-10">
             <Device active={deviceActive} />
-            <div className="flex w-24 shrink-0 items-center justify-center sm:w-32">
+            <div className="flex w-16 shrink-0 items-center justify-center sm:w-32">
               <Flow step={step} />
             </div>
             <ServerBox active={serverActive} />

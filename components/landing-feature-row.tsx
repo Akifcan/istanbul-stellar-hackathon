@@ -40,7 +40,7 @@ export default function LandingFeatureRow({
           </ul>
         </div>
 
-        <div className={cn(reverse && "lg:order-1")}>{visual}</div>
+        <div className={cn("min-w-0", reverse && "lg:order-1")}>{visual}</div>
       </div>
     </section>
   )

@@ -69,7 +69,7 @@ export default function DocsContent() {
       </aside>
 
       {/* Content */}
-      <div className="flex flex-col gap-16">
+      <div className="flex min-w-0 flex-col gap-16">
         <Section id="introduction" title="Introduction">
           <p>
             <strong className="text-foreground">AdProof</strong> is a
