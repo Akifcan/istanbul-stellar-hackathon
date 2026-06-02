@@ -30,7 +30,7 @@ export default function NewCampaignPage() {
   return (
     <div className="min-h-dvh">
       <header className="border-b">
-        <div className="mx-auto flex w-full max-w-2xl items-center justify-between px-4 py-4 sm:px-6">
+        <div className="mx-auto flex w-full max-w-4xl items-center justify-between px-4 py-4 sm:px-6">
           <Link href="/" className="flex items-center gap-2" aria-label="AdProof home">
             <Image src="/logo.png" alt="AdProof logo" width={32} height={32} priority />
             <span className="text-lg font-semibold tracking-tight">AdProof</span>
@@ -39,7 +39,7 @@ export default function NewCampaignPage() {
         </div>
       </header>
 
-      <main className="mx-auto w-full max-w-2xl px-4 py-10 sm:px-6 lg:py-12">
+      <main className="mx-auto w-full max-w-4xl px-4 py-10 sm:px-6 lg:py-12">
         <Link
           href="/dashboard"
           className="text-muted-foreground hover:text-foreground mb-6 inline-flex items-center gap-1.5 text-sm"

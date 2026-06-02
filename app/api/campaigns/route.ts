@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server"
 
-import { supabaseAdmin, AD_CREATIVES_BUCKET } from "@/lib/supabase-admin"
+import { supabaseAdmin } from "@/lib/supabase-admin"
 import { CAMPAIGN_STATUS } from "@/lib/campaigns"
 import { AD_FORMATS } from "@/lib/ad-formats"
+import { AUDIENCE_IDS, INTEREST_IDS, estimateReach } from "@/lib/targeting"
 
 const FORMAT_IDS = AD_FORMATS.map((format) => format.id) as readonly string[]
 
@@ -16,6 +17,10 @@ type CampaignRow = {
   spent: number | string
   impressions: number | string
   created_at: string
+  budget: number | string
+  audiences: string[] | null
+  interests: string[] | null
+  estimated_reach: number | string
 }
 
 function toCampaign(row: CampaignRow): AdCampaign {
@@ -29,6 +34,19 @@ function toCampaign(row: CampaignRow): AdCampaign {
     spent: Number(row.spent),
     impressions: Number(row.impressions),
     createdAt: row.created_at.slice(0, 10),
+    budget: Number(row.budget),
+    audiences: row.audiences ?? [],
+    interests: row.interests ?? [],
+    estimatedReach: Number(row.estimated_reach),
+  }
+}
+
+function isHttpUrl(value: string): boolean {
+  try {
+    const url = new URL(value)
+    return url.protocol === "http:" || url.protocol === "https:"
+  } catch {
+    return false
   }
 }
 
@@ -52,13 +70,23 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
-  const formData = await request.formData()
+  const body = await request.json().catch(() => null)
+  if (!body) {
+    return NextResponse.json({ error: "invalid JSON body" }, { status: 400 })
+  }
 
-  const wallet = String(formData.get("wallet") ?? "").trim()
-  const name = String(formData.get("name") ?? "").trim()
-  const format = String(formData.get("format") ?? "").trim()
-  const description = String(formData.get("description") ?? "").trim()
-  const image = formData.get("image")
+  const wallet = String(body.wallet ?? "").trim()
+  const name = String(body.name ?? "").trim()
+  const format = String(body.format ?? "").trim()
+  const description = String(body.description ?? "").trim()
+  const imageUrl = String(body.imageUrl ?? "").trim()
+  const budget = Number(body.budget)
+  const audiences = Array.isArray(body.audiences)
+    ? body.audiences.map(String).filter((a: string) => AUDIENCE_IDS.includes(a))
+    : []
+  const interests = Array.isArray(body.interests)
+    ? body.interests.map(String).filter((i: string) => INTEREST_IDS.includes(i))
+    : []
 
   if (!wallet) {
     return NextResponse.json({ error: "wallet is required" }, { status: 401 })
@@ -72,27 +100,24 @@ export async function POST(request: NextRequest) {
   if (!FORMAT_IDS.includes(format)) {
     return NextResponse.json({ error: "invalid ad format" }, { status: 400 })
   }
-  if (!(image instanceof File) || !image.type.startsWith("image/")) {
+  if (!isHttpUrl(imageUrl)) {
+    return NextResponse.json({ error: "a valid image URL is required" }, { status: 400 })
+  }
+  if (!Number.isFinite(budget) || budget <= 0) {
+    return NextResponse.json({ error: "a valid budget is required" }, { status: 400 })
+  }
+  if (audiences.length === 0) {
     return NextResponse.json(
-      { error: "an image file is required" },
+      { error: "select at least one target audience" },
       { status: 400 }
     )
   }
-
-  // Upload the creative to Storage.
-  const ext = image.name.split(".").pop()?.toLowerCase() || "png"
-  const path = `${wallet}/${crypto.randomUUID()}.${ext}`
-  const { error: uploadError } = await supabaseAdmin.storage
-    .from(AD_CREATIVES_BUCKET)
-    .upload(path, await image.arrayBuffer(), { contentType: image.type })
-
-  if (uploadError) {
-    return NextResponse.json({ error: uploadError.message }, { status: 500 })
+  if (interests.length === 0) {
+    return NextResponse.json(
+      { error: "select at least one interest" },
+      { status: 400 }
+    )
   }
-
-  const {
-    data: { publicUrl },
-  } = supabaseAdmin.storage.from(AD_CREATIVES_BUCKET).getPublicUrl(path)
 
   const { data, error } = await supabaseAdmin
     .from("campaigns")
@@ -101,10 +126,14 @@ export async function POST(request: NextRequest) {
       name,
       format,
       description,
-      image_url: publicUrl,
+      image_url: imageUrl,
       status: CAMPAIGN_STATUS.ACTIVE,
       spent: 0,
       impressions: 0,
+      budget,
+      audiences,
+      interests,
+      estimated_reach: estimateReach(budget, audiences, interests),
     })
     .select("*")
     .single()

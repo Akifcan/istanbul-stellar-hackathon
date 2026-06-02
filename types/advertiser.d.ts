@@ -9,6 +9,10 @@ declare global {
     status: "active" | "paused"
     spent: number
     impressions: number
+    budget: number
+    audiences: string[]
+    interests: string[]
+    estimatedReach: number
   }
 }
 
