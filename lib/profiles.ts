@@ -1,48 +1,10 @@
 "use client";
 import { useSyncExternalStore } from "react";
 
-// Mock on-device user profiles. Each has interests and a ZK secret used to
-// generate eligibility proofs. The profile NEVER leaves the device — only a
-// proof that an interest condition holds is sent.
-export type DemoProfile = {
-  id: string;
-  name: string;
-  tagline: string;
-  interests: string[];
-  // Fixed per-profile secret (decimal string) for Groth16 proof generation.
-  secret: string;
-};
+import { PROFILES, type DemoProfile } from "@/lib/profiles-data";
 
-export const PROFILES: DemoProfile[] = [
-  {
-    id: "p_tech",
-    name: "Deniz",
-    tagline: "Tech & Gaming",
-    interests: ["technology", "gaming", "finance"],
-    secret: "111111111111111111",
-  },
-  {
-    id: "p_life",
-    name: "Ece",
-    tagline: "Food & Fitness",
-    interests: ["food", "fitness", "sports"],
-    secret: "222222222222222222",
-  },
-  {
-    id: "p_style",
-    name: "Mert",
-    tagline: "Fashion & Travel",
-    interests: ["fashion", "travel", "music"],
-    secret: "333333333333333333",
-  },
-  {
-    id: "p_learn",
-    name: "Aylin",
-    tagline: "Finance & Learning",
-    interests: ["finance", "education", "technology"],
-    secret: "444444444444444444",
-  },
-];
+export { PROFILES };
+export type { DemoProfile };
 
 const STORAGE_KEY = "adproof.profile";
 const listeners = new Set<() => void>();

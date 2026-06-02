@@ -1,9 +1,9 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import Image from "next/image"
 import Link from "next/link"
-import { Terminal, X, User, Trash2 } from "lucide-react"
+import { Terminal, X, User, Trash2, Coins, ChevronDown, ChevronRight } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 import {
@@ -12,6 +12,7 @@ import {
   useSelectedProfile,
 } from "@/lib/profiles"
 import { clearDemoLog, demoLog, useDemoLog, type LogKind } from "@/lib/demo-console"
+import { useEarnings } from "@/lib/demo-earnings"
 
 const KIND_COLOR: Record<LogKind, string> = {
   info: "text-zinc-400",
@@ -24,7 +25,16 @@ const KIND_COLOR: Record<LogKind, string> = {
 export default function DemoBar() {
   const profile = useSelectedProfile()
   const log = useDemoLog()
-  const [open, setOpen] = useState(false)
+  const earnings = useEarnings()
+  const [open, setOpen] = useState(true)
+  const [expanded, setExpanded] = useState<number | null>(null)
+  const scrollRef = useRef<HTMLDivElement>(null)
+
+  // Auto-scroll to the newest line.
+  useEffect(() => {
+    const el = scrollRef.current
+    if (el) el.scrollTop = el.scrollHeight
+  }, [log])
 
   const selectProfile = (id: string) => {
     if (id === profile.id) return
@@ -50,7 +60,14 @@ export default function DemoBar() {
             <Image src="/Stellar-Logo-Final-Black-RGB.png" alt="Stellar" width={48} height={12} />
           </span>
 
-          <span className="ml-auto flex items-center gap-1.5 text-xs text-muted-foreground">
+          {/* Live session earnings */}
+          <span className="ml-auto flex items-center gap-1.5 rounded-full bg-brand-teal/10 px-2.5 py-1 text-xs font-medium text-brand-teal">
+            <Coins className="size-3.5" aria-hidden="true" />
+            <span className="tabular-nums">{earnings.total.toFixed(4)} USDC</span>
+            <span className="text-brand-teal/60">· {earnings.count} ads</span>
+          </span>
+
+          <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
             <User className="size-3.5" aria-hidden="true" />
             Viewing as
           </span>
@@ -96,11 +113,11 @@ export default function DemoBar() {
 
       {/* Console panel */}
       {open && (
-        <aside className="fixed bottom-4 right-4 z-50 flex h-80 w-[min(92vw,420px)] flex-col overflow-hidden rounded-xl border border-white/10 bg-[#0f1117] text-white shadow-2xl">
+        <aside className="fixed bottom-4 right-4 z-50 flex h-[26rem] w-[min(94vw,520px)] flex-col overflow-hidden rounded-xl border border-white/10 bg-[#0f1117] text-white shadow-2xl">
           <div className="flex items-center justify-between border-b border-white/10 px-3 py-2">
             <span className="flex items-center gap-2 font-mono text-xs font-semibold">
               <Terminal className="size-3.5 text-[#FDDA24]" aria-hidden="true" />
-              AdProof · proof console
+              AdProof · zero-knowledge proof console
             </span>
             <div className="flex items-center gap-1">
               <button
@@ -121,16 +138,49 @@ export default function DemoBar() {
               </button>
             </div>
           </div>
-          <div className="flex-1 overflow-y-auto p-3 font-mono text-[11px] leading-relaxed">
+
+          {/* Earnings summary */}
+          <div className="flex items-center justify-between border-b border-white/10 bg-white/[0.03] px-3 py-2 font-mono text-[11px]">
+            <span className="text-white/50">session earnings</span>
+            <span className="flex items-center gap-1 font-semibold text-emerald-300">
+              <Coins className="size-3.5" aria-hidden="true" />
+              {earnings.total.toFixed(4)} USDC
+              <span className="font-normal text-white/40">· {earnings.count} proofs</span>
+            </span>
+          </div>
+
+          <div ref={scrollRef} className="flex-1 overflow-y-auto p-3 font-mono text-[11px] leading-relaxed">
             {log.length === 0 ? (
               <p className="text-white/30">
                 Waiting for activity… switch a profile or scroll to load ads.
               </p>
             ) : (
               log.map((e) => (
-                <div key={e.id} className="flex gap-2">
-                  <span className="shrink-0 text-white/30">{e.time}</span>
-                  <span className={KIND_COLOR[e.kind]}>{e.text}</span>
+                <div key={e.id}>
+                  <div className="flex gap-2">
+                    <span className="shrink-0 text-white/30">{e.time}</span>
+                    {e.detail ? (
+                      <button
+                        type="button"
+                        onClick={() => setExpanded(expanded === e.id ? null : e.id)}
+                        className={cn("flex items-start gap-1 text-left", KIND_COLOR[e.kind])}
+                      >
+                        {expanded === e.id ? (
+                          <ChevronDown className="mt-0.5 size-3 shrink-0" />
+                        ) : (
+                          <ChevronRight className="mt-0.5 size-3 shrink-0" />
+                        )}
+                        {e.text}
+                      </button>
+                    ) : (
+                      <span className={KIND_COLOR[e.kind]}>{e.text}</span>
+                    )}
+                  </div>
+                  {e.detail && expanded === e.id && (
+                    <pre className="mt-1 max-h-48 overflow-auto rounded bg-black/40 p-2 text-[10px] text-white/70">
+                      {e.detail}
+                    </pre>
+                  )}
                 </div>
               ))
             )}

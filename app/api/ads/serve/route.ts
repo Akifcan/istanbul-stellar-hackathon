@@ -35,9 +35,17 @@ export async function GET(request: NextRequest) {
     return campaignInterests.some((i) => interests.includes(i))
   })
 
-  // Shuffle and take `count`.
-  const shuffled = [...eligible].sort(() => Math.random() - 0.5).slice(0, count)
-  const ads = shuffled.map(toCampaign)
+  const shuffle = <T,>(arr: T[]) => [...arr].sort(() => Math.random() - 0.5)
+
+  // Guarantee a popup interstitial in the result when one is eligible.
+  const popups = eligible.filter((c) => c.format === "popup")
+  const others = eligible.filter((c) => c.format !== "popup")
+
+  let chosen = shuffle(others).slice(0, count)
+  if (popups.length > 0) {
+    chosen = [shuffle(popups)[0], ...chosen].slice(0, count)
+  }
+  const ads = shuffle(chosen).map(toCampaign)
 
   const apiKeyId = keyRows && keyRows.length > 0 ? keyRows[0].id : null
 

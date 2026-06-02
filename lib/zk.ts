@@ -1,6 +1,6 @@
 import { buildPoseidon } from "circomlibjs"
 
-import { PROFILES } from "@/lib/profiles"
+import { PROFILES } from "@/lib/profiles-data"
 import { AD_INTERESTS } from "@/lib/targeting"
 
 // Depth-2 Merkle tree => up to 4 leaves per interest set.

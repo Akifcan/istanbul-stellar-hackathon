@@ -1,11 +1,17 @@
 "use client"
 
-import { useEffect, useRef } from "react"
+import { useEffect, useRef, useState } from "react"
 import Image from "next/image"
+import { X, Play } from "lucide-react"
 
 import { generateEligibilityProof } from "@/lib/prove"
 import { demoLog } from "@/lib/demo-console"
+import { addImpressionEarning } from "@/lib/demo-earnings"
 import { interestLabel } from "@/lib/targeting"
+import { PRICE_PER_IMPRESSION_USDC, PUBLISHER_SHARE } from "@/lib/serve"
+
+const PUBLISHER_REVENUE =
+  Math.round(PRICE_PER_IMPRESSION_USDC * PUBLISHER_SHARE * 10000) / 10000
 
 type ServedAd = {
   id: string
@@ -34,6 +40,16 @@ export default function AdproofAd({
   cta?: string
 }) {
   const fired = useRef("")
+  const isPopup = ad.format === "popup"
+  const isRewarded = ad.format === "rewarded"
+  const [popupOpen, setPopupOpen] = useState(false)
+
+  // Interstitial popups appear as a full-screen overlay shortly after load.
+  useEffect(() => {
+    if (!isPopup) return
+    const t = setTimeout(() => setPopupOpen(true), 1500)
+    return () => clearTimeout(t)
+  }, [isPopup, ad.id])
 
   useEffect(() => {
     // Re-run when the profile (secret) changes — a new viewer, a new proof.
@@ -44,19 +60,43 @@ export default function AdproofAd({
     let cancelled = false
     ;(async () => {
       try {
-        demoLog("info", `Ad "${ad.name}" → generating eligibility proof…`)
+        demoLog("info", `▶ Ad shown: "${ad.name}" [${ad.format}]`)
+        demoLog("info", `  matching on-device interest against [${ad.interests.join(", ")}]`)
+
+        const t0 = performance.now()
         const result = await generateEligibilityProof(
           profileSecret,
           profileInterests,
           ad.interests,
           ad.id
         )
-        if (!result || cancelled) return
+        if (!result || cancelled) {
+          if (!cancelled) demoLog("error", `  no matching interest — ad skipped`)
+          return
+        }
+        const genMs = Math.round(performance.now() - t0)
 
-        const nullifier = result.publicSignals[0]
+        const [nullifier, root, campaignField] = result.publicSignals
+        // The generated Groth16 proof — shown for the demo.
+        const detail = JSON.stringify(
+          { proof: result.proof, publicSignals: result.publicSignals },
+          null,
+          2
+        )
         demoLog(
           "proof",
-          `ZK proof ready · interest=${interestLabel(result.interest)} · nullifier=${nullifier.slice(0, 10)}…`
+          `  🔒 Groth16 proof generated in ${genMs}ms · click to view full proof`,
+          detail
+        )
+        demoLog("proof", `     proves: interest "${interestLabel(result.interest)}" ∈ campaign set`)
+        demoLog("proof", `     public: root=${root.slice(0, 12)}…  campaign=${campaignField.slice(0, 10)}…`)
+        demoLog("proof", `     nullifier=${nullifier.slice(0, 18)}…  (identity stays on device)`)
+
+        // Revenue demonstration (off-chain ledger; no on-chain transfer per view).
+        addImpressionEarning(PUBLISHER_REVENUE)
+        demoLog(
+          "chain",
+          `  💰 Impression billed: advertiser −${PRICE_PER_IMPRESSION_USDC} USDC → publisher +${PUBLISHER_REVENUE} USDC`
         )
 
         const res = await fetch("/api/ads/impression", {
@@ -75,17 +115,14 @@ export default function AdproofAd({
         if (cancelled) return
 
         if (!res.ok) {
-          demoLog("error", `Verification failed for "${ad.name}"`)
+          demoLog("error", `  ✗ Server rejected proof for "${ad.name}" (${data.error ?? res.status})`)
         } else if (data.counted) {
-          demoLog(
-            "success",
-            `Proof verified ✓ "${ad.name}" — publisher +${data.earned} USDC`
-          )
+          demoLog("success", `  ✓ Verified on server · ledger updated (+${data.earned} USDC)`)
         } else {
-          demoLog("chain", `Proof verified ✓ "${ad.name}" — ${data.reason}`)
+          demoLog("success", `  ✓ Verified on server · ${data.reason ?? "ok"}`)
         }
       } catch {
-        if (!cancelled) demoLog("error", `Could not prove eligibility for "${ad.name}"`)
+        if (!cancelled) demoLog("error", `  Could not prove eligibility for "${ad.name}"`)
       }
     })()
 
@@ -96,9 +133,49 @@ export default function AdproofAd({
 
   const label = (
     <span className="absolute left-2 top-2 z-10 rounded bg-black/55 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-white">
-      Ad · AdProof
+      Ad · AdProof · {ad.format}
     </span>
   )
+
+  // POPUP / interstitial → full-screen overlay
+  if (isPopup) {
+    if (!popupOpen) return null
+    return (
+      <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 p-4">
+        <div
+          className="relative w-full max-w-sm overflow-hidden rounded-xl border-2 bg-white shadow-2xl"
+          style={{ borderColor: accent }}
+        >
+          {label}
+          <button
+            type="button"
+            onClick={() => setPopupOpen(false)}
+            aria-label="Close ad"
+            className="absolute right-2 top-2 z-10 flex size-7 items-center justify-center rounded-full bg-black/55 text-white hover:bg-black/75"
+          >
+            <X className="size-4" />
+          </button>
+          <div className="relative aspect-video w-full bg-gray-100">
+            {ad.imageUrl && (
+              <Image src={ad.imageUrl} alt="" fill unoptimized sizes="384px" className="object-cover" />
+            )}
+          </div>
+          <div className="p-5">
+            <p className="text-lg font-bold text-gray-900">{ad.name}</p>
+            <p className="mt-1 text-sm text-gray-500">{ad.description}</p>
+            <button
+              type="button"
+              onClick={() => setPopupOpen(false)}
+              className="mt-4 w-full rounded-md py-2.5 text-sm font-semibold text-white"
+              style={{ backgroundColor: accent }}
+            >
+              {cta}
+            </button>
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   if (variant === "banner") {
     return (
@@ -135,6 +212,12 @@ export default function AdproofAd({
       <div className="relative aspect-square w-full bg-gray-100">
         {ad.imageUrl && (
           <Image src={ad.imageUrl} alt="" fill unoptimized sizes="220px" className="object-cover" />
+        )}
+        {isRewarded && (
+          <span className="absolute inset-0 flex items-center justify-center gap-1.5 bg-black/45 text-sm font-semibold text-white">
+            <Play className="size-4 fill-current" aria-hidden="true" />
+            Watch to earn
+          </span>
         )}
       </div>
       <div className="flex flex-col gap-1 p-3">
