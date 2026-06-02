@@ -130,7 +130,7 @@ export default function AdList() {
 ## Component Structure
 
 - Each section must be created as a separate component file.
-- Reusable / shared components live in `components/`. Route-specific components can live in a `_components/` folder colocated next to the route (the `_` prefix keeps it out of routing).
+- ALL components live in the top-level `components/` folder — both shared and route-specific. Do NOT create `_components/` folders next to routes.
 - Break down pages into logical sections.
 - Each section = separate component file.
 - Components are imported explicitly using the `@/` path alias — there is no auto-import.
@@ -408,10 +408,9 @@ app/
 │   ├── page.tsx         #   the rendered page
 │   ├── layout.tsx       #   optional nested layout
 │   ├── loading.tsx      #   skeleton fallback
-│   ├── error.tsx        #   error boundary (Client Component)
-│   └── _components/      #   route-specific components (excluded from routing)
+│   └── error.tsx        #   error boundary (Client Component)
 ├── api/                 # Route Handlers (route.ts) — backend endpoints
-components/              # Shared, reusable components (kebab-case files)
+components/              # ALL components — shared + route-specific (kebab-case files)
 lib/                     # Shared utilities, fetchers, constants, server helpers
 hooks/                   # Reusable client hooks (use-*.ts)
 types/                   # Global type definitions (.d.ts)
