@@ -28,7 +28,7 @@ import {
   FormMessage,
 } from "@/components/ui/form"
 import { AD_FORMATS } from "@/lib/ad-formats"
-import { addCampaign, CAMPAIGN_STATUS } from "@/lib/campaigns"
+import { useWallet } from "@/lib/wallet"
 
 const FORMAT_IDS = AD_FORMATS.map((format) => format.id)
 
@@ -55,17 +55,9 @@ const schema = yup.object({
 
 type FormValues = yup.InferType<typeof schema>
 
-function readAsDataUrl(file: File): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader()
-    reader.onload = () => resolve(reader.result as string)
-    reader.onerror = () => reject(reader.error)
-    reader.readAsDataURL(file)
-  })
-}
-
 export default function CreateCampaignForm() {
   const router = useRouter()
+  const wallet = useWallet()
   const [preview, setPreview] = useState<string | null>(null)
 
   const form = useForm<FormValues, unknown, FormValues>({
@@ -74,19 +66,30 @@ export default function CreateCampaignForm() {
   })
 
   const onSubmit = async (values: FormValues) => {
-    const imageUrl = await readAsDataUrl(values.image)
+    if (!wallet) {
+      toast.error("Connect your wallet first")
+      return
+    }
 
-    addCampaign({
-      id: crypto.randomUUID(),
-      name: values.name,
-      format: values.format,
-      description: values.description,
-      imageUrl,
-      createdAt: new Date().toISOString().slice(0, 10),
-      status: CAMPAIGN_STATUS.ACTIVE,
-      spent: 0,
-      impressions: 0,
+    const formData = new FormData()
+    formData.append("wallet", wallet)
+    formData.append("name", values.name)
+    formData.append("format", values.format)
+    formData.append("description", values.description)
+    formData.append("image", values.image)
+
+    const res = await fetch("/api/campaigns", {
+      method: "POST",
+      body: formData,
     })
+
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}))
+      toast.error("Could not create campaign", {
+        description: body.error ?? "Please try again.",
+      })
+      return
+    }
 
     toast.success("Campaign created", {
       description: `“${values.name}” is now live.`,

@@ -1,6 +1,7 @@
 "use client"
 
 import Image from "next/image"
+import useSWR from "swr"
 import { ImageIcon } from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
@@ -19,15 +20,21 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { CAMPAIGN_STATUS, useCampaigns } from "@/lib/campaigns"
+import { CAMPAIGN_STATUS } from "@/lib/campaigns"
 import { AD_FORMATS } from "@/lib/ad-formats"
+import { fetcher } from "@/lib/fetcher"
+import { useWallet } from "@/lib/wallet"
 
 function formatLabel(id: string): string {
   return AD_FORMATS.find((format) => format.id === id)?.label ?? id
 }
 
 export default function CampaignsTable() {
-  const campaigns = useCampaigns()
+  const wallet = useWallet()
+  const { data: campaigns, error, isLoading } = useSWR<AdCampaign[]>(
+    wallet ? `/api/campaigns?wallet=${encodeURIComponent(wallet)}` : null,
+    fetcher
+  )
 
   return (
     <Card>
@@ -36,7 +43,17 @@ export default function CampaignsTable() {
         <CardDescription>Ads you&apos;ve created.</CardDescription>
       </CardHeader>
       <CardContent>
-        {campaigns.length === 0 ? (
+        {error ? (
+          <p className="text-destructive py-8 text-center text-sm">
+            Could not load campaigns. Please refresh.
+          </p>
+        ) : isLoading ? (
+          <div className="flex flex-col gap-3">
+            {[0, 1].map((i) => (
+              <div key={i} className="bg-muted h-12 animate-pulse rounded" />
+            ))}
+          </div>
+        ) : !campaigns || campaigns.length === 0 ? (
           <p className="text-muted-foreground py-8 text-center text-sm">
             No campaigns yet. Create one to get started.
           </p>
