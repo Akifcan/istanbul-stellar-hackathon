@@ -29,7 +29,7 @@ export default function LandingHero() {
 
           <p className="mt-6 max-w-lg text-lg text-muted-foreground">
             AdProof targets users with zero-knowledge proofs. They prove they
-            match a condition — never revealing who they are. Payments settle on
+            match a condition never revealing who they are. Payments settle on
             Stellar.
           </p>
 

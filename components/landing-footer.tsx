@@ -4,7 +4,7 @@ import Link from "next/link"
 export default function LandingFooter() {
   return (
     <footer className="bg-background">
-      <div className="mx-auto flex max-w-6xl flex-col gap-8 px-4 py-12 sm:px-6">
+      <div className="mx-auto flex max-w-6xl flex-col gap-8 px-4 pb-32 pt-12 sm:px-6">
         <div className="flex flex-col items-start justify-between gap-6 sm:flex-row sm:items-center">
           <Link href="/" className="flex items-center gap-2" aria-label="AdProof home">
             <Image src="/logo.png" alt="AdProof logo" width={30} height={30} />

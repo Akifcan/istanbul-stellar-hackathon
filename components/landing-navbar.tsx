@@ -17,6 +17,7 @@ export default function LandingNavbar() {
           <Link href="#why" className="hover:text-foreground">Why AdProof</Link>
           <Link href="#how" className="hover:text-foreground">How it works</Link>
           <Link href="#demos" className="hover:text-foreground">Demos</Link>
+          <Link href="/about" className="hover:text-foreground">About</Link>
         </div>
 
         <Link

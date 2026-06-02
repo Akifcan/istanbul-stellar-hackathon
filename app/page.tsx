@@ -12,6 +12,7 @@ import LandingVisualStellar from "@/components/landing-visual-stellar";
 import LandingVisualSdk from "@/components/landing-visual-sdk";
 import LandingDemos from "@/components/landing-demos";
 import LandingFooter from "@/components/landing-footer";
+import LandingPromoBar from "@/components/landing-promo-bar";
 
 export const metadata: Metadata = {
   title: "AdProof — Privacy-Preserving Advertising on Stellar",
@@ -78,6 +79,7 @@ export default function Home() {
         <LandingDemos />
       </main>
       <LandingFooter />
+      <LandingPromoBar />
     </>
   );
 }
