@@ -3,6 +3,7 @@ import Image from "next/image"
 import Link from "next/link"
 
 import DashboardView from "@/components/dashboard-view"
+import WalletMenu from "@/components/wallet-menu"
 
 export const metadata: Metadata = {
   title: "Dashboard | AdProof",
@@ -26,6 +27,7 @@ export default function DashboardPage() {
             <Image src="/logo.png" alt="AdProof logo" width={32} height={32} priority />
             <span className="text-lg font-semibold tracking-tight">AdProof</span>
           </Link>
+          <WalletMenu />
         </div>
       </header>
 

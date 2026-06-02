@@ -11,6 +11,7 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 import CreateCampaignForm from "@/components/create-campaign-form"
+import WalletMenu from "@/components/wallet-menu"
 
 export const metadata: Metadata = {
   title: "Create campaign | AdProof",
@@ -34,6 +35,7 @@ export default function NewCampaignPage() {
             <Image src="/logo.png" alt="AdProof logo" width={32} height={32} priority />
             <span className="text-lg font-semibold tracking-tight">AdProof</span>
           </Link>
+          <WalletMenu />
         </div>
       </header>
 
