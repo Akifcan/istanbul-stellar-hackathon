@@ -92,13 +92,6 @@ export default function AdproofAd({
         demoLog("proof", `     public: root=${root.slice(0, 12)}…  campaign=${campaignField.slice(0, 10)}…`)
         demoLog("proof", `     nullifier=${nullifier.slice(0, 18)}…  (identity stays on device)`)
 
-        // Revenue demonstration (off-chain ledger; no on-chain transfer per view).
-        addImpressionEarning(PUBLISHER_REVENUE)
-        demoLog(
-          "chain",
-          `  💰 Impression billed: advertiser −${PRICE_PER_IMPRESSION_USDC} USDC → publisher +${PUBLISHER_REVENUE} USDC`
-        )
-
         const res = await fetch("/api/ads/impression", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -117,9 +110,19 @@ export default function AdproofAd({
         if (!res.ok) {
           demoLog("error", `  ✗ Server rejected proof for "${ad.name}" (${data.error ?? res.status})`)
         } else if (data.counted) {
-          demoLog("success", `  ✓ Verified on server · ledger updated (+${data.earned} USDC)`)
+          // Billed only when the server actually counts this unique impression.
+          const earned = Number(data.earned) || PUBLISHER_REVENUE
+          addImpressionEarning(earned)
+          demoLog(
+            "chain",
+            `  💰 Impression billed: advertiser −${PRICE_PER_IMPRESSION_USDC} → publisher +${earned} USDC`
+          )
+          demoLog("success", `  ✓ Verified on server · ledger updated`)
         } else {
-          demoLog("success", `  ✓ Verified on server · ${data.reason ?? "ok"}`)
+          demoLog(
+            "info",
+            `  • Already counted this campaign for this user — no double charge`
+          )
         }
       } catch {
         if (!cancelled) demoLog("error", `  Could not prove eligibility for "${ad.name}"`)

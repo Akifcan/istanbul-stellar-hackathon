@@ -3,7 +3,8 @@
 import { useEffect, useRef, useState } from "react"
 import Image from "next/image"
 import Link from "next/link"
-import { Terminal, X, User, Trash2, Coins, ChevronDown, ChevronRight } from "lucide-react"
+import { Terminal, X, User, Trash2, Coins, ChevronDown, ChevronRight, RotateCcw } from "lucide-react"
+import { useSWRConfig } from "swr"
 
 import { cn } from "@/lib/utils"
 import {
@@ -12,7 +13,7 @@ import {
   useSelectedProfile,
 } from "@/lib/profiles"
 import { clearDemoLog, demoLog, useDemoLog, type LogKind } from "@/lib/demo-console"
-import { useEarnings } from "@/lib/demo-earnings"
+import { useEarnings, resetEarnings } from "@/lib/demo-earnings"
 
 const KIND_COLOR: Record<LogKind, string> = {
   info: "text-zinc-400",
@@ -26,9 +27,25 @@ export default function DemoBar() {
   const profile = useSelectedProfile()
   const log = useDemoLog()
   const earnings = useEarnings()
+  const { mutate } = useSWRConfig()
   const [open, setOpen] = useState(true)
+  const [resetting, setResetting] = useState(false)
   const [expanded, setExpanded] = useState<number | null>(null)
   const scrollRef = useRef<HTMLDivElement>(null)
+
+  const handleReset = async () => {
+    setResetting(true)
+    try {
+      await fetch("/api/demo/reset", { method: "POST" })
+      resetEarnings()
+      clearDemoLog()
+      // refresh any dashboard/ad data that's mounted
+      mutate(() => true)
+      demoLog("info", "Demo reset — earnings, impressions and nullifiers cleared.")
+    } finally {
+      setResetting(false)
+    }
+  }
 
   // Auto-scroll to the newest line.
   useEffect(() => {
@@ -93,6 +110,17 @@ export default function DemoBar() {
               </button>
             ))}
           </div>
+
+          <button
+            type="button"
+            onClick={handleReset}
+            disabled={resetting}
+            className="flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium hover:bg-accent disabled:opacity-50"
+            aria-label="Reset demo"
+          >
+            <RotateCcw className={cn("size-3.5", resetting && "animate-spin")} aria-hidden="true" />
+            {resetting ? "Resetting…" : "Reset"}
+          </button>
 
           <button
             type="button"
