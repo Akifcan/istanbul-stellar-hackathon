@@ -77,6 +77,7 @@ export default function ApiKeysTable() {
                 <TableHead>API key</TableHead>
                 <TableHead className="text-right">Ads shown</TableHead>
                 <TableHead className="text-right">USDC</TableHead>
+                <TableHead>Vault</TableHead>
                 <TableHead>Status</TableHead>
               </TableRow>
             </TableHeader>
@@ -123,6 +124,21 @@ export default function ApiKeysTable() {
                       minimumFractionDigits: 2,
                       maximumFractionDigits: 2,
                     })}
+                  </TableCell>
+                  <TableCell>
+                    {apiKey.vaultContractId ? (
+                      <a
+                        href={`https://stellar.expert/explorer/testnet/contract/${apiKey.vaultContractId}`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-brand hover:text-foreground font-mono text-xs underline-offset-2 hover:underline"
+                      >
+                        {apiKey.vaultContractId.slice(0, 4)}…
+                        {apiKey.vaultContractId.slice(-4)}
+                      </a>
+                    ) : (
+                      <span className="text-muted-foreground text-xs">—</span>
+                    )}
                   </TableCell>
                   <TableCell>
                     <Badge

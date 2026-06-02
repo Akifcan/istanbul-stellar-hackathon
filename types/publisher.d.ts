@@ -8,6 +8,7 @@ declare global {
     impressions: number
     earned: number
     status: "active" | "inactive"
+    vaultContractId: string | null
   }
 }
 

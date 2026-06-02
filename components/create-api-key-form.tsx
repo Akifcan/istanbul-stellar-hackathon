@@ -25,6 +25,7 @@ import {
   FormMessage,
 } from "@/components/ui/form"
 import { useWallet } from "@/lib/wallet"
+import { deployVault } from "@/lib/deploy-vault"
 
 const schema = yup.object({
   name: yup.string().trim().required("Key name is required"),
@@ -52,15 +53,32 @@ export default function CreateApiKeyForm() {
       return
     }
 
+    // 1. Publisher deploys their own vault contract (signs in Freighter).
+    let vaultContractId: string
+    try {
+      toast.loading("Deploying your vault contract — approve in Freighter…", {
+        id: "deploy",
+      })
+      vaultContractId = await deployVault(wallet)
+      toast.success("Vault contract deployed", { id: "deploy" })
+    } catch (err) {
+      toast.error("Contract deployment failed", {
+        id: "deploy",
+        description: err instanceof Error ? err.message : "Please try again.",
+      })
+      return
+    }
+
+    // 2. Save the API key + its vault address.
     const res = await fetch("/api/api-keys", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ wallet, ...values }),
+      body: JSON.stringify({ wallet, ...values, vaultContractId }),
     })
 
     if (!res.ok) {
       const body = await res.json().catch(() => ({}))
-      toast.error("Could not create API key", {
+      toast.error("Could not save API key", {
         description: body.error ?? "Please try again.",
       })
       return

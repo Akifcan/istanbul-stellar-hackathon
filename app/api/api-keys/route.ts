@@ -12,6 +12,7 @@ type ApiKeyRow = {
   earned: number | string
   status: "active" | "inactive"
   created_at: string
+  vault_contract_id: string | null
 }
 
 function toApiKey(row: ApiKeyRow): PublisherApiKey {
@@ -24,6 +25,7 @@ function toApiKey(row: ApiKeyRow): PublisherApiKey {
     earned: Number(row.earned),
     status: row.status,
     createdAt: row.created_at.slice(0, 10),
+    vaultContractId: row.vault_contract_id,
   }
 }
 
@@ -69,6 +71,9 @@ export async function POST(request: NextRequest) {
   const wallet = String(body.wallet ?? "").trim()
   const name = String(body.name ?? "").trim()
   const websiteUrl = String(body.websiteUrl ?? "").trim()
+  const vaultContractId = body.vaultContractId
+    ? String(body.vaultContractId).trim()
+    : null
 
   if (!wallet) {
     return NextResponse.json({ error: "wallet is required" }, { status: 401 })
@@ -93,6 +98,7 @@ export async function POST(request: NextRequest) {
       impressions: 0,
       earned: 0,
       status: KEY_STATUS.ACTIVE,
+      vault_contract_id: vaultContractId,
     })
     .select("*")
     .single()
