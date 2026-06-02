@@ -60,7 +60,10 @@ export default function CreateApiKeyForm() {
         id: "deploy",
       })
       vaultContractId = await deployVault(wallet)
-      toast.success("Vault contract deployed", { id: "deploy" })
+      toast.success("Vault contract deployed", {
+        id: "deploy",
+        description: `${vaultContractId.slice(0, 6)}…${vaultContractId.slice(-6)}`,
+      })
     } catch (err) {
       toast.error("Contract deployment failed", {
         id: "deploy",

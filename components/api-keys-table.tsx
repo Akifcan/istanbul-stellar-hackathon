@@ -36,13 +36,13 @@ export default function ApiKeysTable() {
     wallet ? `/api/api-keys?wallet=${encodeURIComponent(wallet)}` : null,
     fetcher
   )
-  const [copiedId, setCopiedId] = useState<string | null>(null)
+  const [copied, setCopied] = useState<string | null>(null)
 
-  const handleCopy = async (apiKey: PublisherApiKey) => {
-    await navigator.clipboard.writeText(apiKey.key)
-    setCopiedId(apiKey.id)
-    toast.success("API key copied")
-    setTimeout(() => setCopiedId(null), 1500)
+  const handleCopy = async (token: string, text: string, label: string) => {
+    await navigator.clipboard.writeText(text)
+    setCopied(token)
+    toast.success(`${label} copied`)
+    setTimeout(() => setCopied(null), 1500)
   }
 
   return (
@@ -105,10 +105,12 @@ export default function ApiKeysTable() {
                         variant="ghost"
                         size="icon"
                         className="size-7"
-                        onClick={() => handleCopy(apiKey)}
+                        onClick={() =>
+                          handleCopy(`${apiKey.id}:key`, apiKey.key, "API key")
+                        }
                         aria-label={`Copy API key for ${apiKey.name}`}
                       >
-                        {copiedId === apiKey.id ? (
+                        {copied === `${apiKey.id}:key` ? (
                           <Check className="size-3.5 text-brand-teal" />
                         ) : (
                           <Copy className="size-3.5" />
@@ -127,15 +129,37 @@ export default function ApiKeysTable() {
                   </TableCell>
                   <TableCell>
                     {apiKey.vaultContractId ? (
-                      <a
-                        href={`https://stellar.expert/explorer/testnet/contract/${apiKey.vaultContractId}`}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="text-brand hover:text-foreground font-mono text-xs underline-offset-2 hover:underline"
-                      >
-                        {apiKey.vaultContractId.slice(0, 4)}…
-                        {apiKey.vaultContractId.slice(-4)}
-                      </a>
+                      <div className="flex items-center gap-2">
+                        <a
+                          href={`https://stellar.expert/explorer/testnet/contract/${apiKey.vaultContractId}`}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="text-brand hover:text-foreground font-mono text-xs underline-offset-2 hover:underline"
+                        >
+                          {apiKey.vaultContractId.slice(0, 4)}…
+                          {apiKey.vaultContractId.slice(-4)}
+                        </a>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="size-7"
+                          onClick={() =>
+                            handleCopy(
+                              `${apiKey.id}:vault`,
+                              apiKey.vaultContractId!,
+                              "Contract ID"
+                            )
+                          }
+                          aria-label={`Copy vault contract id for ${apiKey.name}`}
+                        >
+                          {copied === `${apiKey.id}:vault` ? (
+                            <Check className="size-3.5 text-brand-teal" />
+                          ) : (
+                            <Copy className="size-3.5" />
+                          )}
+                        </Button>
+                      </div>
                     ) : (
                       <span className="text-muted-foreground text-xs">—</span>
                     )}
