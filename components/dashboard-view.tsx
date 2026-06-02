@@ -1,16 +1,15 @@
 "use client"
 
-import { useState } from "react"
-
 import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
 import { cn } from "@/lib/utils"
 import { DASHBOARD_MODE } from "@/lib/publisher"
+import { setDashboardMode, useDashboardMode } from "@/lib/dashboard-mode"
 import PublisherDashboard from "@/components/publisher-dashboard"
 import AdvertiserDashboard from "@/components/advertiser-dashboard"
 
 export default function DashboardView() {
-  const [mode, setMode] = useState<string>(DASHBOARD_MODE.PUBLISHER)
+  const mode = useDashboardMode()
   const isAdvertiser = mode === DASHBOARD_MODE.ADVERTISER
 
   return (
@@ -20,7 +19,9 @@ export default function DashboardView() {
           id="dashboard-mode"
           checked={isAdvertiser}
           onCheckedChange={(checked) =>
-            setMode(checked ? DASHBOARD_MODE.ADVERTISER : DASHBOARD_MODE.PUBLISHER)
+            setDashboardMode(
+              checked ? DASHBOARD_MODE.ADVERTISER : DASHBOARD_MODE.PUBLISHER
+            )
           }
           aria-label="Toggle between publisher and advertiser mode"
         />
