@@ -1,20 +1,26 @@
-import { Megaphone } from "lucide-react"
+import Link from "next/link"
+import { Plus } from "lucide-react"
 
-import { Card, CardContent } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import AdvertiserStats from "@/components/advertiser-stats"
+import CampaignsTable from "@/components/campaigns-table"
 
 export default function AdvertiserDashboard() {
   return (
-    <Card>
-      <CardContent className="flex flex-col items-center gap-3 py-16 text-center">
-        <span className="flex size-12 items-center justify-center rounded-xl bg-brand/10 text-brand">
-          <Megaphone className="size-6" aria-hidden="true" />
-        </span>
-        <h2 className="text-lg font-semibold">Advertiser mode is coming soon</h2>
-        <p className="text-muted-foreground max-w-sm text-sm text-balance">
-          Create campaigns, set targeting conditions, and fund budgets — without
-          ever collecting user data. Stay tuned.
-        </p>
-      </CardContent>
-    </Card>
+    <div className="flex flex-col gap-8">
+      <AdvertiserStats />
+
+      <div className="flex items-center justify-between gap-4">
+        <h2 className="text-lg font-semibold tracking-tight">Your campaigns</h2>
+        <Button asChild className="gap-2">
+          <Link href="/dashboard/campaigns/new">
+            <Plus className="size-4" aria-hidden="true" />
+            Create campaign
+          </Link>
+        </Button>
+      </div>
+
+      <CampaignsTable />
+    </div>
   )
 }
