@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react"
 import Image from "next/image"
-import { X, Play } from "lucide-react"
+import { X, Play, ShieldCheck } from "lucide-react"
 
 import { generateEligibilityProof } from "@/lib/prove"
 import { demoLog } from "@/lib/demo-console"
@@ -135,10 +135,20 @@ export default function AdproofAd({
   }, [ad, apiKeyId, profileSecret, profileInterests])
 
   const label = (
-    <span className="absolute left-2 top-2 z-10 rounded bg-black/55 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-white">
-      Ad · AdProof · {ad.format}
+    <span
+      className="absolute left-2 top-2 z-10 flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white shadow-sm"
+      style={{ backgroundColor: accent }}
+    >
+      <ShieldCheck className="size-3" aria-hidden="true" />
+      AdProof Ad
     </span>
   )
+
+  // Strong, eye-catching emphasis so reviewers focus on AdProof ads.
+  const emphasis = {
+    borderColor: accent,
+    boxShadow: `0 0 0 3px ${accent}33, 0 10px 30px -8px ${accent}66`,
+  } as const
 
   // POPUP / interstitial → full-screen overlay
   if (isPopup) {
@@ -146,8 +156,8 @@ export default function AdproofAd({
     return (
       <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 p-4">
         <div
-          className="relative w-full max-w-sm overflow-hidden rounded-xl border-2 bg-white shadow-2xl"
-          style={{ borderColor: accent }}
+          className="relative w-full max-w-sm overflow-hidden rounded-xl border-2 bg-white"
+          style={{ borderColor: accent, boxShadow: `0 0 0 4px ${accent}33, 0 20px 50px -10px ${accent}88` }}
         >
           {label}
           <button
@@ -183,8 +193,8 @@ export default function AdproofAd({
   if (variant === "banner") {
     return (
       <div
-        className="relative flex items-stretch overflow-hidden rounded-lg border bg-white shadow-sm"
-        style={{ borderColor: `${accent}66` }}
+        className="relative flex items-stretch overflow-hidden rounded-lg border-2 bg-white"
+        style={emphasis}
       >
         {label}
         <div className="relative w-40 shrink-0 bg-gray-100 sm:w-56">
@@ -208,8 +218,8 @@ export default function AdproofAd({
 
   return (
     <div
-      className="relative overflow-hidden rounded-lg border bg-white shadow-sm"
-      style={{ borderColor: `${accent}66` }}
+      className="relative overflow-hidden rounded-lg border-2 bg-white"
+      style={emphasis}
     >
       {label}
       <div className="relative aspect-square w-full bg-gray-100">
