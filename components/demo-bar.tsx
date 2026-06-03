@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react"
 import Image from "next/image"
 import Link from "next/link"
-import { Terminal, X, User, Trash2, Coins, ChevronDown, ChevronRight, RotateCcw } from "lucide-react"
+import { Terminal, X, User, Trash2, Coins, ChevronDown, ChevronRight, RotateCcw, ExternalLink } from "lucide-react"
 import { useSWRConfig } from "swr"
 
 import { cn } from "@/lib/utils"
@@ -201,7 +201,20 @@ export default function DemoBar() {
                         {e.text}
                       </button>
                     ) : (
-                      <span className={KIND_COLOR[e.kind]}>{e.text}</span>
+                      <span className={KIND_COLOR[e.kind]}>
+                        {e.text}
+                        {e.href && (
+                          <a
+                            href={e.href}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="ml-1 inline-flex items-center gap-0.5 text-[#FDDA24] underline underline-offset-2 hover:opacity-80"
+                          >
+                            {e.hrefLabel ?? "view"}
+                            <ExternalLink className="size-2.5" aria-hidden="true" />
+                          </a>
+                        )}
+                      </span>
                     )}
                   </div>
                   {e.detail && expanded === e.id && (

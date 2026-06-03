@@ -8,6 +8,8 @@ export type LogEntry = {
   kind: LogKind
   text: string
   detail?: string
+  href?: string
+  hrefLabel?: string
 }
 
 const MAX = 80
@@ -15,9 +17,16 @@ let entries: LogEntry[] = []
 let counter = 0
 const listeners = new Set<() => void>()
 
-export function demoLog(kind: LogKind, text: string, detail?: string) {
+export function demoLog(
+  kind: LogKind,
+  text: string,
+  opts?: { detail?: string; href?: string; hrefLabel?: string }
+) {
   const time = new Date().toLocaleTimeString("en-US", { hour12: false })
-  entries = [...entries, { id: ++counter, time, kind, text, detail }].slice(-MAX)
+  entries = [
+    ...entries,
+    { id: ++counter, time, kind, text, ...opts },
+  ].slice(-MAX)
   listeners.forEach((l) => l())
 }
 

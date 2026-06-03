@@ -13,6 +13,8 @@ import { PRICE_PER_IMPRESSION_USDC, PUBLISHER_SHARE } from "@/lib/serve"
 const PUBLISHER_REVENUE =
   Math.round(PRICE_PER_IMPRESSION_USDC * PUBLISHER_SHARE * 10000) / 10000
 
+const BASE_CONTRACT_ID = process.env.NEXT_PUBLIC_BASE_CONTRACT_ID
+
 type ServedAd = {
   id: string
   name: string
@@ -40,9 +42,12 @@ export default function AdproofAd({
   cta?: string
 }) {
   const fired = useRef("")
+  const rootRef = useRef<HTMLDivElement>(null)
   const isPopup = ad.format === "popup"
   const isRewarded = ad.format === "rewarded"
   const [popupOpen, setPopupOpen] = useState(false)
+  // An ad only earns once it's actually been seen on screen.
+  const [seen, setSeen] = useState(false)
 
   // Interstitial popups appear as a full-screen overlay shortly after load.
   useEffect(() => {
@@ -51,7 +56,32 @@ export default function AdproofAd({
     return () => clearTimeout(t)
   }, [isPopup, ad.id])
 
+  // Inline ads: count as "seen" only when (almost) the entire unit is in view.
   useEffect(() => {
+    if (isPopup) return
+    const el = rootRef.current
+    if (!el) return
+    const obs = new IntersectionObserver(
+      (entries) => {
+        for (const e of entries) {
+          if (e.isIntersecting && e.intersectionRatio >= 0.95) {
+            setSeen(true)
+            obs.disconnect()
+          }
+        }
+      },
+      { threshold: [0.95, 1] }
+    )
+    obs.observe(el)
+    return () => obs.disconnect()
+  }, [isPopup])
+
+  // Inline ads count once seen in the viewport; popups once they open.
+  const isSeen = isPopup ? popupOpen : seen
+
+  useEffect(() => {
+    // Only fire after the ad has actually been seen on screen.
+    if (!isSeen) return
     // Re-run when the profile (secret) changes — a new viewer, a new proof.
     const token = `${ad.id}:${profileSecret}`
     if (fired.current === token) return
@@ -86,7 +116,7 @@ export default function AdproofAd({
         demoLog(
           "proof",
           `  🔒 Groth16 proof generated in ${genMs}ms · click to view full proof`,
-          detail
+          { detail }
         )
         demoLog("proof", `     proves: interest "${interestLabel(result.interest)}" ∈ campaign set`)
         demoLog("proof", `     public: root=${root.slice(0, 12)}…  campaign=${campaignField.slice(0, 10)}…`)
@@ -115,7 +145,13 @@ export default function AdproofAd({
           addImpressionEarning(earned)
           demoLog(
             "chain",
-            `  💰 Impression billed: advertiser −${PRICE_PER_IMPRESSION_USDC} → publisher +${earned} USDC`
+            `  💰 Impression billed: advertiser −${PRICE_PER_IMPRESSION_USDC} → publisher +${earned} USDC`,
+            BASE_CONTRACT_ID
+              ? {
+                  href: `https://stellar.expert/explorer/testnet/contract/${BASE_CONTRACT_ID}`,
+                  hrefLabel: "view on Stellar Expert",
+                }
+              : undefined
           )
           demoLog("success", `  ✓ Verified on server · ledger updated`)
         } else {
@@ -132,7 +168,7 @@ export default function AdproofAd({
     return () => {
       cancelled = true
     }
-  }, [ad, apiKeyId, profileSecret, profileInterests])
+  }, [isSeen, ad, apiKeyId, profileSecret, profileInterests])
 
   const label = (
     <span
@@ -193,6 +229,7 @@ export default function AdproofAd({
   if (variant === "banner") {
     return (
       <div
+        ref={rootRef}
         className="relative flex items-stretch overflow-hidden rounded-lg border-2 bg-white"
         style={emphasis}
       >
@@ -218,6 +255,7 @@ export default function AdproofAd({
 
   return (
     <div
+      ref={rootRef}
       className="relative overflow-hidden rounded-lg border-2 bg-white"
       style={emphasis}
     >
